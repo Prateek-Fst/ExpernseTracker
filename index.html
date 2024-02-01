@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expense Tracker</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .expense-container {
+            max-width: 400px;
+            width: 100%;
+            background-color: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        input {
+            margin-bottom: 10px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        li {
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid #ccc;
+            padding: 8px 0;
+        }
+
+        button.delete-btn {
+            background-color: #e74c3c;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="expense-container">
+        <h2>Expense Tracker</h2>
+        <form id="expense-form">
+            <input type="text" id="expense-name" placeholder="Expense Name" required>
+            <input type="number" id="expense-amount" placeholder="Expense Amount" required>
+            <button type="submit">Add Expense</button>
+        </form>
+        <ul id="expense-list"></ul>
+    </div>
+
+    <script>
+        const expenseForm = document.getElementById('expense-form');
+        const expenseNameInput = document.getElementById('expense-name');
+        const expenseAmountInput = document.getElementById('expense-amount');
+        const expenseList = document.getElementById('expense-list');
+
+        expenseForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const expenseName = expenseNameInput.value;
+            const expenseAmount = parseFloat(expenseAmountInput.value);
+
+            if (expenseName && !isNaN(expenseAmount) && expenseAmount > 0) {
+                const expenseItem = document.createElement('li');
+                expenseItem.innerHTML = `
+                    ${expenseName} - $${expenseAmount.toFixed(2)}
+                    <button class="delete-btn" onclick="deleteExpense(this)">Delete</button>
+                `;
+
+                expenseList.appendChild(expenseItem);
+
+                // Save to local storage
+                saveExpenseToLocalStorage(expenseName, expenseAmount);
+
+                // Clear input fields
+                expenseNameInput.value = '';
+                expenseAmountInput.value = '';
+            } else {
+                alert('Please enter valid expense details.');
+            }
+        });
+
+        function saveExpenseToLocalStorage(name, amount) {
+            let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+            expenses.push({ name, amount });
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        function deleteExpense(button) {
+            const expenseItem = button.parentElement;
+            const expenseName = expenseItem.innerText.split(' - ')[0];
+
+            // Remove from UI
+            expenseItem.remove();
+
+            // Remove from local storage
+            removeExpenseFromLocalStorage(expenseName);
+        }
+
+        function removeExpenseFromLocalStorage(name) {
+            let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+            expenses = expenses.filter(expense => expense.name !== name);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        // Load expenses from local storage on page load
+        window.addEventListener('load', function () {
+            let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+
+            expenses.forEach(expense => {
+                const expenseItem = document.createElement('li');
+                expenseItem.innerHTML = `
+                    ${expense.name} - $${expense.amount.toFixed(2)}
+                    <button class="delete-btn" onclick="deleteExpense(this)">Delete</button>
+                `;
+
+                expenseList.appendChild(expenseItem);
+            });
+        });
+    </script>
+</body>
+
+</html>
